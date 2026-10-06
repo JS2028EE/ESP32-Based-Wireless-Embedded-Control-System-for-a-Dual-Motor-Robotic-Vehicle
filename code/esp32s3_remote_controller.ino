@@ -97,6 +97,7 @@ bool wifiOk     = false;
 char lastDrive  = 0;   // 'F' fwd  'B' back  0 stop
 char lastSteer  = 0;   // 'L' left 'R' right 0 center
 unsigned long lastSpeedSend = 0;
+unsigned long lastControlSend = 0;
 unsigned long lastStatusBar = 0;
 
 // ════════════════════════════════════════════════════════════
@@ -474,6 +475,14 @@ void loop() {
     sendCmd(buf);
     drawSpeedBar();
     lastSpeedSend = millis();
+  }
+
+  // Repeat desired state so dropped UDP commands recover; receiver expires after 750 ms.
+  if (wifiOk && millis() - lastControlSend >= 100) {
+    sendCmd(lastDrive == 'F' ? "forward" : lastDrive == 'B' ? "backward" : "stop_drive");
+    sendCmd(lastSteer == 'L' ? "left" : lastSteer == 'R' ? "right" : "stop_steer");
+    sendCmd(btns[0].pressed ? "horn_on" : "horn_off");
+    lastControlSend = millis();
   }
 
   // ── Status bar refresh every 1s ──

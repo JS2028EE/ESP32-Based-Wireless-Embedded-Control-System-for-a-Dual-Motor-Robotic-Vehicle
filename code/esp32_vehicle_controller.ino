@@ -48,6 +48,8 @@ WiFiUDP udp;
 char    pkt[64];
 int     driveSpeed = 200;
 bool    lightsOn   = false;
+unsigned long lastControlPacketMs = 0;
+constexpr unsigned long CONTROL_TIMEOUT_MS = 750;
 
 // ── Motor Helpers ────────────────────────────────────────────
 void driveForward(int s)  { ledcWrite(DRIVE_ENB, s); digitalWrite(DRIVE_IN1, HIGH); digitalWrite(DRIVE_IN2, LOW);  }
@@ -61,6 +63,12 @@ void steerStop()          { ledcWrite(STEER_ENA, 0); digitalWrite(STEER_IN3, LOW
 void handleCmd(String cmd) {
   cmd.trim();
   Serial.println("[CMD] " + cmd);
+  // Only motor/horn state packets keep the control lease alive.
+  if (cmd == "forward" || cmd == "backward" || cmd == "stop_drive" ||
+      cmd == "left" || cmd == "right" || cmd == "stop_steer" ||
+      cmd == "stop_all" || cmd == "horn_on" || cmd == "horn_off") {
+    lastControlPacketMs = millis();
+  }
 
   if      (cmd == "forward")       driveForward(driveSpeed);
   else if (cmd == "backward")      driveBackward(driveSpeed);
@@ -134,6 +142,11 @@ void loop() {
       pkt[len] = '\0';
       handleCmd(String(pkt));
     }
+  }
+  if (millis() - lastControlPacketMs > CONTROL_TIMEOUT_MS) {
+    driveStop();
+    steerStop();
+    digitalWrite(BUZZER_PIN, LOW);
   }
   // No delay — keep UDP polling as fast as possible
 }

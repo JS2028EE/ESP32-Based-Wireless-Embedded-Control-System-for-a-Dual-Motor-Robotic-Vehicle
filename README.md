@@ -228,3 +228,15 @@ The project emphasizes:
 - electrical analysis
 - hardware/software integration
 - real-world embedded systems design
+
+## Reproduce this prototype
+
+The source uses the Arduino-ESP32 **3.x** LEDC API. The vehicle sketch requires the ESP32 board package; the remote also requires **Adafruit GFX** and **Adafruit ILI9341**. Confirm the display/touch pin constants against your specific ESP32-S3 board before upload. Open each `.ino` in a matching Arduino sketch folder and upload it to the corresponding board. Serial diagnostics use 115200 baud.
+
+The remote's touch controls repeat drive, steering, and horn state every 100 ms. The vehicle disables both motors and the horn if no control-state packet arrives for 750 ms. Upload both revised sketches together. Test with wheels raised: hold a drive command, disconnect the remote, and confirm that the outputs stop; reconnect and verify control resumes. This revision has not been tested on the physical vehicle.
+
+The repository tree above is a conceptual layout. Actual artifacts are in [Block Diagrams](Block%20Diagrams/), [schematics](schematics/), [images](images/), and [the engineering report](documentation/ESP32-Based%20Wireless%20Embedded%20Control%20System%20for%20a%20Dual-Motor%20Robotic%20Vehicle.pdf). No benchmark establishes an end-to-end latency guarantee.
+
+## License
+
+Original source and documentation are available under the [MIT License](LICENSE). External dependencies, libraries, and third-party assets retain their respective licenses. Licensing does not imply that the prototype is calibrated, certified, or physically validated after later code changes.
